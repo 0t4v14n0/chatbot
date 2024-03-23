@@ -2,7 +2,7 @@
 <p>Chat bot para responder clientes</p>
 
 <h2>✅Install✅</h2>
-<h3>Crie um arquivo txt "BINE.txt" com as seguintes biblioecas:</h3>
+<h3>Crie um arquivo txt "BINE.txt" com as seguintes bibliotecas:</h3>
 <p>▪️ selenium</p>
 <p>▪️ webdriver-manager</p>
 <p>▪️ key</p>
