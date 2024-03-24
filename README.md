@@ -12,7 +12,6 @@
 <p>▪️ requests</p>
 <p>▪️ openai</p>
 <p>▪️ PySimpleGUI</p>
-<p>▪️ requests</p>
 <h3>Comando para instalacao de todas as bibliotecas ultilizadas</h3>
 <p>$ pip insall -r BINE.txt</p>
 
