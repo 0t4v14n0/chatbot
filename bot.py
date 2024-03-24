@@ -8,8 +8,8 @@ import time
 #facilitar munutencao
 bolinha_not = ('lyutrhe2')
 contato_cli = ('//*[@id="main"]/header/div[2]/div/div/div/span')
-caixa_msg   = ('//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p')
 msg_cliente = ('_21Ahp')
+caixa_msg   = ('//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p')
 caixa_msg2 = ('div[title="Digite uma mensagem"]')
 caixa_pesquisa = ('div[title="Caixa de texto de pesquisa"]')
 
@@ -45,7 +45,7 @@ def bot():
         time.sleep(5)
 
         #pegar msg
-        todas_msg = driver.find_elements(By.CLASS_NAME,caixa_msg)
+        todas_msg = driver.find_elements(By.CLASS_NAME,msg_cliente)
         todas_msg_texto = [e.text for e in todas_msg]
         msg = todas_msg_texto[-1]
         print('ultima mensagem: ',msg)
