@@ -13,7 +13,7 @@
 <p>▪️ openai</p>
 <p>▪️ PySimpleGUI</p>
 <h3>Comando para instalacao de todas as bibliotecas ultilizadas</h3>
-<p>$ pip insall -r BINE.txt</p>
+<p>$ pip install -r BINE.txt</p>
 
 <h2>🐍Tecnologias🐍<h2>
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original-wordmark.svg" width="40" />
