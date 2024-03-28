@@ -6,6 +6,12 @@ $senha    = '';
 $banco    = 'bot';
 $conn     = mysqli_connect($servidor, $usuario, $senha, $banco);
 
+function numeroJaExistente($telefone, $conn) {
+    $sql = "SELECT * FROM usuario WHERE telefone = '$telefone'";
+    $result = $conn->query($sql);
+    return $result->num_rows > 0;
+}
+
 if (!$conn) {
     // se der erro na conexão
     die("Erro na conexão do BD: " . mysqli_connect_error());
@@ -13,7 +19,6 @@ if (!$conn) {
 } else {
 
     // Conectado recebendo os valores de numero e a ultima mensagem enviada do cliente
-    // Validando e definindo como vazio caso não seja fornecido
 
     $telefone = $_GET['telefone'] ?? '';
     $msg      = $_GET['msg'] ?? ''; 
@@ -27,15 +32,17 @@ if (!$conn) {
 
     //cadastrar no banco de dados se nao estiver cadastrado
 
-    $sql_verificar = "SELECT * FROM usuario WHERE telefone = '$telefone'";
-    $result_verificar = $conn->query($sql_verificar);
-
-    if(!$result_verificar){
+    // Verifica se o número já existe no banco de dados
+    if (numeroJaExistente($telefone, $conn)) {
+        echo "Este número já foi adicionado anteriormente. Tente outro.\n";
+    } else {
+        // Insere o número na tabela do banco de dados
         $sql = "INSERT INTO usuario (telefone) VALUES ('$telefone')";
-        $query = mysqli_query($conn,$sql);
-        echo"1";
-    } else{
-        echo"2";
+        if ($conn->query($sql) === TRUE) {
+            echo "Número de telefone adicionado com sucesso.\n";
+        } else {
+            echo "Erro ao adicionar número de telefone: " . $conn->error . "\n";
+        }
     }
 
 }
