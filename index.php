@@ -9,12 +9,21 @@ $conn     = mysqli_connect($servidor, $usuario, $senha, $banco);
 if (!$conn) {
     // se der erro na conexão
     die("Erro na conexão do BD: " . mysqli_connect_error());
-    
+
 } else {
 
     // Conectado recebendo os valores de numero e a ultima mensagem enviada do cliente
-    $telefone = $_GET['telefone'];
-    $msg      = $_GET['msg'];
+    // Validando e definindo como vazio caso não seja fornecido
+
+    $telefone = $_GET['telefone'] ?? '';
+    $msg      = $_GET['msg'] ?? ''; 
+
+    // Validando se o número de telefone foi fornecido
+    if(empty($telefone)) {
+        die("Erro: Número de telefone não fornecido.");
+    } if(empty($msg)) {
+        die("Erro: mensagem não fornecido.");
+    }
 
     //cadastrar no banco de dados se nao estiver cadastrado
 
