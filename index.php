@@ -39,12 +39,12 @@ function busca($bu,$telefone,$conn){
 $escolha = 0;
 $status = 0;
 
-// Correção do erro na linha 20
 if (!$conn) {
     // se der erro na conexão
     die("Erro na conexão do BD: " . mysqli_connect_error());
 } else {
-    // Conectado recebendo os valores de numero e a ultima mensagem enviada do cliente
+
+    //recebendo os valores
     $telefone = $_GET['telefone'];
     $msg      = $_GET['msg'];
 
@@ -54,7 +54,6 @@ if (!$conn) {
         //echo "Este número já foi adicionado anteriormente. Tente outro.\n";
         //echo $telefone;
     } else {
-        // Insere o número na tabela do banco de dados usando prepared statement
         $sql = "INSERT INTO usuario (telefone) VALUES (?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $telefone);
