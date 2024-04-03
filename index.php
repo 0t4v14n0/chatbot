@@ -54,7 +54,7 @@ function escolha_Atualizar($es,$telefone,$conn){
     $query = mysqli_query($conn, $sql);
 }
 
-function escolha_Atualizar($es,$telefone,$conn){
+function escolha_Atualizar2($es,$telefone,$conn){
     $sql = "UPDATE usuario SET escolha2 = '$es' WHERE telefone = '$telefone'";
     $query = mysqli_query($conn, $sql);
 }
@@ -125,8 +125,7 @@ if (!$conn) {
                 switch ($msg) {
                     case 1:
                         escolha_Atualizar(1,$telefone,$conn);
-                        status_Atualizar(0,$telefone,$conn);
-                        escolha_Atualizar(0,$telefone,$conn);
+                        escolha_Atualizar2(1,$telefone,$conn);
                         mostrarHorario($conn);
                         break;
                     case 2:
@@ -152,6 +151,52 @@ if (!$conn) {
 
         } else{
             $escolha2 = busca("escolha",$telefone,$conn);
+
+            if ($escolha2 == 1){
+                if ($msg >= 1 && $msg <= 6) {
+                    switch ($msg) {
+                        case 1:
+                            // reduzir codigo, fazer uma funcao pra zerar, com um for talvez,ou secao com uma update
+                            echo("horario marcado");
+                            status_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar2(0,$telefone,$conn);
+                            break;
+                        case 2:
+                            echo("horario marcado");
+                            status_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar2(0,$telefone,$conn);
+                            break;
+                        case 3:
+                            echo("horario marcado");
+                            status_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar2(0,$telefone,$conn);
+                            break;
+                        case 4:
+                            echo("horario marcado");
+                            status_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar2(0,$telefone,$conn);
+                            break;
+                        case 5:
+                            echo("horario marcado");
+                            status_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar2(0,$telefone,$conn);
+                            break;
+                        case 6:
+                            echo("horario marcado");
+                            status_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar(0,$telefone,$conn);
+                            escolha_Atualizar2(0,$telefone,$conn);
+                            break;
+                    }
+                }
+                else {
+                }
+            }
         }
     }
 }
