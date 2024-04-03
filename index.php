@@ -14,14 +14,14 @@ function mostrarHorario($conn){
     // Executa a consulta SQL
     $resultado = mysqli_query($conn, $sql);
 
-    // Verifica se a retorno
+    // Verifica se há registros retornados
     if (mysqli_num_rows($resultado) > 0) {
-    // exibe os dados
+    // Exibe os dados
         while ($linha = mysqli_fetch_assoc($resultado)) {
             if($linha["disponibilidade"] == 1){
 
                 echo $linha["id"] . " - " .  
-                $linha["hora"] . " - hora \n";
+                $linha["hora"] . " horas \n";
 
             }
         }
@@ -40,6 +40,10 @@ function numeroJaExistente($telefone, $conn) {
     return $result->num_rows > 0;
 }
 
+////////////////////////////////////////////////////////////
+//passar como parametro o nome na tabela reducao de codigo//
+////////////////////////////////////////////////////////////
+
 function status_Atualizar($st,$telefone,$conn){
     $sql = "UPDATE usuario SET status = '$st' WHERE telefone = '$telefone'";
     $query = mysqli_query($conn, $sql);
@@ -49,6 +53,15 @@ function escolha_Atualizar($es,$telefone,$conn){
     $sql = "UPDATE usuario SET escolha = '$es' WHERE telefone = '$telefone'";
     $query = mysqli_query($conn, $sql);
 }
+
+function escolha_Atualizar($es,$telefone,$conn){
+    $sql = "UPDATE usuario SET escolha2 = '$es' WHERE telefone = '$telefone'";
+    $query = mysqli_query($conn, $sql);
+}
+
+////////////////////////////////////////////////////////////
+//passar como parametro o nome na tabela reducao de codigo//
+////////////////////////////////////////////////////////////
 
 function busca($bu,$telefone,$conn){
     $sql = "SELECT * FROM usuario WHERE telefone = '$telefone'";
@@ -135,11 +148,10 @@ if (!$conn) {
                 }
             }
             else {
-        
             }
 
         } else{
-            
+            $escolha2 = busca("escolha",$telefone,$conn);
         }
     }
 }
