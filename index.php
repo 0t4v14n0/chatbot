@@ -6,6 +6,31 @@ $senha    = '';
 $banco    = 'bot';
 $conn     = new mysqli($servidor, $usuario, $senha, $banco);
 
+function mostrarHorario($conn){
+    echo("Quer marca uma hora ?\n");
+
+    $sql = "SELECT * FROM horario";
+
+    // Executa a consulta SQL
+    $resultado = mysqli_query($conn, $sql);
+
+    // Verifica se a retorno
+    if (mysqli_num_rows($resultado) > 0) {
+    // exibe os dados
+        while ($linha = mysqli_fetch_assoc($resultado)) {
+            if($linha["disponibilidade"] == 1){
+
+                echo $linha["id"] . " - " .  
+                $linha["hora"] . " - hora \n";
+
+            }
+        }
+    } else {
+        echo "Nenhum resultado encontrado.";
+    }
+    
+}
+
 function numeroJaExistente($telefone, $conn) {
     $sql = "SELECT * FROM usuario WHERE telefone = ?";
     $stmt = $conn->prepare($sql);
@@ -43,8 +68,7 @@ if (!$conn) {
     // se der erro na conexão
     die("Erro na conexão do BD: " . mysqli_connect_error());
 } else {
-
-    //recebendo os valores
+    //recebe os valores
     $telefone = $_GET['telefone'];
     $msg      = $_GET['msg'];
 
@@ -54,6 +78,7 @@ if (!$conn) {
         //echo "Este número já foi adicionado anteriormente. Tente outro.\n";
         //echo $telefone;
     } else {
+        // Insere o número na tabela do banco de dados usando prepared statement
         $sql = "INSERT INTO usuario (telefone) VALUES (?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $telefone);
@@ -68,7 +93,7 @@ if (!$conn) {
 
     if($status == 0){
 
-        echo("Ola,tudo bem ? sou o bot de Celio Holanda...
+        echo("Ola, tudo bem ? sou um bot...
         Como posso ajudar ?
         1-Consulta
         2-Treinamento
@@ -86,8 +111,10 @@ if (!$conn) {
             if ($msg >= 1 && $msg <= 5) {
                 switch ($msg) {
                     case 1:
-                        echo("Quer marca uma data ?");
-                        $escolha = 1;
+                        escolha_Atualizar(1,$telefone,$conn);
+                        status_Atualizar(0,$telefone,$conn);
+                        escolha_Atualizar(0,$telefone,$conn);
+                        mostrarHorario($conn);
                         break;
                     case 2:
                         echo("Quer marca uma data ?");
@@ -106,19 +133,15 @@ if (!$conn) {
                         $escolha = 5;
                         break;
                 }
-                escolha_Atualizar($escolha,$telefone,$conn);
-                echo($escolha);
             }
             else {
-                #status_Atualizar(0,$telefone,$conn);
+        
             }
 
         } else{
-
+            
         }
-
     }
-
 }
 
 $conn->close();
