@@ -6,6 +6,12 @@ $senha    = '';
 $banco    = 'bot';
 $conn     = new mysqli($servidor, $usuario, $senha, $banco);
 
+function limpa($telefone,$conn){
+    atualizar_stes("status",1,$telefone,$conn);
+    atualizar_stes("escolha",1,$telefone,$conn);
+    atualizar_stes("escolha2",1,$telefone,$conn);
+}
+
 function mostrarHorario($conn){
     echo("Quer marca uma hora ?\n");
 
@@ -28,9 +34,9 @@ function mostrarHorario($conn){
     } else {
         echo "Nenhum resultado encontrado.";
     }
-    
 }
 
+//
 function numeroJaExistente($telefone, $conn) {
     $sql = "SELECT * FROM usuario WHERE telefone = ?";
     $stmt = $conn->prepare($sql);
@@ -40,28 +46,11 @@ function numeroJaExistente($telefone, $conn) {
     return $result->num_rows > 0;
 }
 
-////////////////////////////////////////////////////////////
-//passar como parametro o nome na tabela reducao de codigo//
-////////////////////////////////////////////////////////////
-
-function status_Atualizar($st,$telefone,$conn){
-    $sql = "UPDATE usuario SET status = '$st' WHERE telefone = '$telefone'";
+// atualiza os status de escolhas
+function atualizar_stes($campo, $valor, $telefone, $conn){
+    $sql = "UPDATE usuario SET $campo = '$valor' WHERE telefone = '$telefone'";
     $query = mysqli_query($conn, $sql);
 }
-
-function escolha_Atualizar($es,$telefone,$conn){
-    $sql = "UPDATE usuario SET escolha = '$es' WHERE telefone = '$telefone'";
-    $query = mysqli_query($conn, $sql);
-}
-
-function escolha_Atualizar2($es,$telefone,$conn){
-    $sql = "UPDATE usuario SET escolha2 = '$es' WHERE telefone = '$telefone'";
-    $query = mysqli_query($conn, $sql);
-}
-
-////////////////////////////////////////////////////////////
-//passar como parametro o nome na tabela reducao de codigo//
-////////////////////////////////////////////////////////////
 
 function busca($bu,$telefone,$conn){
     $sql = "SELECT * FROM usuario WHERE telefone = '$telefone'";
@@ -114,7 +103,7 @@ if (!$conn) {
         4-Assessoria Juridica
         5-Registro de Marcas");
 
-        status_Atualizar(1,$telefone,$conn);
+        atualizar_stes("status",1,$telefone,$conn);
 
     }else{
 
@@ -124,8 +113,8 @@ if (!$conn) {
             if ($msg >= 1 && $msg <= 5) {
                 switch ($msg) {
                     case 1:
-                        escolha_Atualizar(1,$telefone,$conn);
-                        escolha_Atualizar2(1,$telefone,$conn);
+                        atualizar_stes("escolha",1,$telefone,$conn);
+                        atualizar_stes("escolha2",1,$telefone,$conn);
                         mostrarHorario($conn);
                         break;
                     case 2:
@@ -158,39 +147,27 @@ if (!$conn) {
                         case 1:
                             // reduzir codigo, fazer uma funcao pra zerar, com um for talvez,ou secao com uma update
                             echo("horario marcado");
-                            status_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar2(0,$telefone,$conn);
+                            limpa($telefone,$conn);
                             break;
                         case 2:
                             echo("horario marcado");
-                            status_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar2(0,$telefone,$conn);
+                            limpa($telefone,$conn);
                             break;
                         case 3:
                             echo("horario marcado");
-                            status_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar2(0,$telefone,$conn);
+                            limpa($telefone,$conn);
                             break;
                         case 4:
                             echo("horario marcado");
-                            status_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar2(0,$telefone,$conn);
+                            limpa($telefone,$conn);
                             break;
                         case 5:
                             echo("horario marcado");
-                            status_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar2(0,$telefone,$conn);
+                            limpa($telefone,$conn);
                             break;
                         case 6:
                             echo("horario marcado");
-                            status_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar(0,$telefone,$conn);
-                            escolha_Atualizar2(0,$telefone,$conn);
+                            limpa($telefone,$conn);
                             break;
                     }
                 }
