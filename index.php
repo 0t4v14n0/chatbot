@@ -6,12 +6,27 @@ $senha    = '';
 $banco    = 'bot';
 $conn     = new mysqli($servidor, $usuario, $senha, $banco);
 
-function limpa($telefone,$conn){
-    atualizar_stes("status",1,$telefone,$conn);
-    atualizar_stes("escolha",1,$telefone,$conn);
-    atualizar_stes("escolha2",1,$telefone,$conn);
+function addNome($valor,$telefone,$conn){
+    $sql = "UPDATE horario SET disponibilidade = 0 WHERE id = '$valor'";
+    $query = mysqli_query($conn, $sql);
 }
 
+function addValor($valor,$telefone,$conn){
+    //um if se o valor for 0 indica quer zerar o historico...
+    if ($valor == 0){
+        atualizar_stes("status",$valor,$telefone,$conn);
+    }
+    atualizar_stes("escolha",$valor,$telefone,$conn);
+    atualizar_stes("escolha2",$valor,$telefone,$conn);
+}
+
+// se o clinete escolher uma data ela nao ira mais aparecer para o proximo...
+function autalizaHora($valor,$telefone,$conn){
+    $sql = "UPDATE horario SET disponibilidade = 0 WHERE id = '$valor'";
+    $query = mysqli_query($conn, $sql);
+}
+
+//mostra os horarios dispooniveis com um if...
 function mostrarHorario($conn){
     echo("Quer marca uma hora ?\n");
 
@@ -36,7 +51,7 @@ function mostrarHorario($conn){
     }
 }
 
-//
+//cadastra uma ves so o numero do clkiente
 function numeroJaExistente($telefone, $conn) {
     $sql = "SELECT * FROM usuario WHERE telefone = ?";
     $stmt = $conn->prepare($sql);
@@ -52,6 +67,7 @@ function atualizar_stes($campo, $valor, $telefone, $conn){
     $query = mysqli_query($conn, $sql);
 }
 
+//busca valores
 function busca($bu,$telefone,$conn){
     $sql = "SELECT * FROM usuario WHERE telefone = '$telefone'";
     $query = mysqli_query($conn,$sql);
@@ -63,6 +79,7 @@ function busca($bu,$telefone,$conn){
     return $status;
 }
 
+//reiniciando as variaveis, boa pratica
 $escolha = 0;
 $status = 0;
 
@@ -113,24 +130,23 @@ if (!$conn) {
             if ($msg >= 1 && $msg <= 5) {
                 switch ($msg) {
                     case 1:
-                        atualizar_stes("escolha",1,$telefone,$conn);
-                        atualizar_stes("escolha2",1,$telefone,$conn);
+                        addValor(1,$telefone,$conn);
                         mostrarHorario($conn);
                         break;
                     case 2:
-                        echo("Quer marca uma data ?");
+                        echo("treinamneto");
                         $escolha = 2;
                         break;
                     case 3:
-                        echo("Quer marca uma data ?");
+                        echo("direitos do trabalho");
                         $escolha = 3;
                         break;
                     case 4:
-                        echo("Quer marca uma data ?");
+                        echo("Assessoria Juridica");
                         $escolha = 4;
                         break;
                     case 5:
-                        echo("Quer marca uma data ?");
+                        echo("Registro de Marcas");
                         $escolha = 5;
                         break;
                 }
@@ -138,7 +154,9 @@ if (!$conn) {
             else {
             }
 
-        } else{
+        }
+        else if ($escolha == 1){
+
             $escolha2 = busca("escolha",$telefone,$conn);
 
             if ($escolha2 == 1){
@@ -146,34 +164,62 @@ if (!$conn) {
                     switch ($msg) {
                         case 1:
                             // reduzir codigo, fazer uma funcao pra zerar, com um for talvez,ou secao com uma update
-                            echo("horario marcado");
-                            limpa($telefone,$conn);
+                            //echo("horario marcado");
+                            autalizaHora(1,$telefone,$conn);
+                            atualizar_stes("escolha2",2,$telefone,$conn);
+                            // add valor 0 zera o historico de mensagens do cliente
                             break;
                         case 2:
-                            echo("horario marcado");
-                            limpa($telefone,$conn);
+                            //echo("horario marcado");
+                            autalizaHora(2,$telefone,$conn);
+                            // add valor 0 zera o historico de mensagens do cliente
                             break;
                         case 3:
-                            echo("horario marcado");
-                            limpa($telefone,$conn);
+                            //echo("horario marcado");
+                            autalizaHora(3,$telefone,$conn);
+                            // add valor 0 zera o historico de mensagens do cliente
                             break;
                         case 4:
-                            echo("horario marcado");
-                            limpa($telefone,$conn);
+                            //echo("horario marcado");
+                            autalizaHora(4,$telefone,$conn);
+                            // add valor 0 zera o historico de mensagens do cliente
                             break;
                         case 5:
-                            echo("horario marcado");
-                            limpa($telefone,$conn);
+                            //echo("horario marcado");
+                            autalizaHora(5,$telefone,$conn);
+                            // add valor 0 zera o historico de mensagens do cliente
                             break;
                         case 6:
-                            echo("horario marcado");
-                            limpa($telefone,$conn);
+                            //echo("horario marcado");
+                            autalizaHora(6,$telefone,$conn);
+                            // add valor 0 zera o historico de mensagens doi cliente
                             break;
                     }
                 }
                 else {
                 }
+                echo("Qual e seu nome ?");
             }
+            else{
+                addNome($msg,$telefone,$conn);
+                addValor(0,$telefone,$conn);
+            }
+
+        }
+        else if ($escolha == 2){
+
+        }
+        else if ($escolha == 3){
+            
+        }
+        else if ($escolha == 4){
+            
+        }
+        else if ($escolha == 5){
+            
+        }
+         else{
+
         }
     }
 }
