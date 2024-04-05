@@ -6,6 +6,11 @@ $senha    = '';
 $banco    = 'bot';
 $conn     = new mysqli($servidor, $usuario, $senha, $banco);
 
+//////////////////////////////////////////////////////////////////////////////////
+//terminar de cadastrar o nome e exibir o horario nome  e telefone para contato///
+//tb enviar para um numero especifico quando alguem cadastrar...//////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
 function addNome($valor,$telefone,$conn){
     $sql = "UPDATE horario SET disponibilidade = 0 WHERE id = '$valor'";
     $query = mysqli_query($conn, $sql);
