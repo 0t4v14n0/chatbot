@@ -1,5 +1,5 @@
 # 🤖CHAT BOT🤖
-<p>Chat bot para responder clientes</p>
+<p>Chat bot para responder clientes, cadastrar e marca consultas</p>
 
 <h2>✅Install✅</h2>
 <h3>Crie um arquivo txt "BINE.txt" com as seguintes bibliotecas:</h3>
