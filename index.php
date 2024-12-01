@@ -6,228 +6,254 @@ $senha    = '';
 $banco    = 'bot';
 $conn     = new mysqli($servidor, $usuario, $senha, $banco);
 
-function addNome($nome,$telefone,$id,$conn){
-    $sql = "UPDATE horario SET telefone = '$telefone', nome = '$nome' WHERE id = $id";
-    $query = mysqli_query($conn, $sql);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
-function addValor($valor,$telefone,$conn){
-    atualizar_stes("status",$valor,$telefone,$conn);
-    atualizar_stes("escolha",$valor,$telefone,$conn);
-    atualizar_stes("escolha2",$valor,$telefone,$conn);
-    atualizar_stes("escolha3",$valor,$telefone,$conn);
-}
+// Quick and Dirty
 
-// se o clinete escolher uma data ela nao ira mais aparecer para o proximo...
-function autalizaHora($valor,$telefone,$conn){
-    $sql = "UPDATE horario SET disponibilidade = 0 WHERE id = '$valor'";
-    $query = mysqli_query($conn, $sql);
-}
-
-//mostra os horarios dispooniveis com um if...
-function mostrarHorario($conn){
-    echo("Quer marca uma hora ?\n");
-
-    $sql = "SELECT * FROM horario";
-
-    // Executa a consulta SQL
-    $resultado = mysqli_query($conn, $sql);
-
-    // Verifica se há registros retornados
-    if (mysqli_num_rows($resultado) > 0) {
-    // Exibe os dados
-        while ($linha = mysqli_fetch_assoc($resultado)) {
-            if($linha["disponibilidade"] == 1){
-
-                echo $linha["id"] . " - " .  
-                $linha["hora"] . " horas \n";
-
-            }
-        }
-    } else {
-        echo "Nenhum resultado encontrado.";
-    }
-    return;
-}
-
-//cadastra uma ves so o numero do clkiente
-function numeroJaExistente($telefone, $conn) {
-    $sql = "SELECT * FROM usuario WHERE telefone = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $telefone);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    return $result->num_rows > 0;
-}
-
-// atualiza os status de escolhas
-function atualizar_stes($campo, $valor, $telefone, $conn){
-    $sql = "UPDATE usuario SET $campo = '$valor' WHERE telefone = '$telefone'";
-    $query = mysqli_query($conn, $sql);
-}
-
-//busca valores
-function busca($bu,$telefone,$conn){
-    $sql = "SELECT * FROM usuario WHERE telefone = '$telefone'";
-    $query = mysqli_query($conn,$sql);
-    $total = mysqli_num_rows($query);
-
-    while($rows_usuarios = mysqli_fetch_array($query)){
-        $status = $rows_usuarios[$bu];
-    }
-    return $status;
-}
-
-//reiniciando as variaveis, boa pratica
+//Limpar variaveis kkkk
 $escolha = 0;
 $status = 0;
 $id = 0;
 
-if (!$conn) {
-    // se der erro na conexão
-    die("Erro na conexão do BD: " . mysqli_connect_error());
-} else {
-    //recebe os valores
-    $telefone = $_GET['telefone'];
-    $msg      = $_GET['msg'];
+//Opcoes validas para validacao
+$opcoes = ["1", "2", "3", "4", "5", "6", "7", "*"];
 
-    //cadastrar no banco de dados se nao estiver cadastrado
-    // Verifica se o número já existe no banco de dados
-    if (numeroJaExistente($telefone, $conn)) {
-        //echo "Este número já foi adicionado anteriormente. Tente outro.\n";
-        //echo $telefone;
+//Opcoes validas para validacao
+$opcoesHorarios = ["1", "2", "3", "4", "5", "6"];
+
+function atualizar($coluna, $valor, $telefone, $conn) {
+    $sql = "UPDATE usuario SET $coluna = ? WHERE telefone = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $valor, $telefone);
+    return $stmt->execute(); // Retorna true se a atualização for bem-sucedida
+}
+
+function buscaUsuario($bu, $telefone, $conn) {
+    // Prepara a consulta para evitar SQL Injection
+    $sql = "SELECT $bu FROM usuario WHERE telefone = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $telefone);
+    $stmt->execute();
+    
+    // Obtém o resultado
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        // Retorna o valor do campo solicitado
+        return $row[$bu];
+    }
+    
+    // Retorna null se não houver resultado
+    return null;
+}
+
+function primeiraMSG($nome) {
+
+    $opcoes = "
+    Digite o número da opção que deseja para que possamos marcar um horário:
+    1- Direito de Família (Divórcio, Pensão, etc)
+    2- Servidores Públicos
+    3- Direito Trabalhista
+    4- Direito Previdenciário (Pensão, aposentadoria, benefícios, etc)
+    5- Registro de Marca
+    6- Direito Empresarial (Assessoria Jurídica, Execuções, etc)
+    7- Outros Segmentos";
+
+    if ($nome == null) {
+        echo("Olá, tudo bem? Sou um assistente virtual do escritório Holanda Advogados Associados.");
     } else {
-        // Insere o número na tabela do banco de dados usando prepared statement
-        $sql = "INSERT INTO usuario (telefone) VALUES (?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $telefone);
-        if ($stmt->execute()) {
-            //echo "Número de telefone adicionado com sucesso.\n";
+        echo("Olá, tudo bem? $nome, que bom falar com você novamente!
+        Se precissar mudar o nome envie '*'.");
+    }
+    echo($opcoes);
+}
+
+function segundaMSG(){
+    echo("Qual e o seu nome ?");
+}
+
+function validarDataUtil($data, $conn) {
+    $sql = "SELECT eh_dia_util FROM calendario WHERE data = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $data);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        return $row['eh_dia_util'] == 1; // retorna TRUE se e dia util
+    }
+    return false; // retorna FALSE se a data nao existir
+}
+
+function buscaHorarios($dataAtual,$horaAtual,$conn) {// retorna apenas horarios disponiveis
+
+    $sql = "
+    SELECT h.hora, c.data
+    FROM horarios h
+    JOIN calendario c ON h.id_calendario = c.id
+    LEFT JOIN marcacoes m ON h.id = m.id_horario  -- Verifica se o horário já foi marcado
+    WHERE c.data = ?  -- Apenas a data atual
+    AND h.hora > ?  -- Apenas horários futuros
+    AND m.id IS NULL  -- Apenas horários não marcados
+    ORDER BY h.hora ASC;  -- Ordena pelos horários
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $dataAtual, $horaAtual);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    return $result;
+
+}
+
+function horariosDisponiveis($conn) {
+
+    // $dataAtual = (new DateTime())->format('Y-m-d');  // A data atual no formato Y-m-d
+    // $horaAtual = (new DateTime())->format('H:i:s');  // A hora atual no formato H:i:s
+
+    // Simulação de data e hora
+    $dataAtual = '2024-12-02'; // Segunda-feira
+    $horaAtual = '06:00:00';  // Horário fixo para teste
+
+    if (validarDataUtil($dataAtual, $conn)) {
+
+        $result = buscaHorarios($dataAtual,$horaAtual,$conn);
+    
+        if ($result->num_rows > 0) {
+            echo "A consulta esta no valor de 50R$.
+            Escolha uma das opções abaixo:\n";
+            $opcao = 1; // inicia o contador
+            while ($row = $result->fetch_assoc()) {
+                echo "$opcao - " . $row['hora'] . "\n";
+                $opcao++;
+                
+                if ($opcao > 6) break;//garante apenas 6 opcoes
+            }
         } else {
-            //echo "Erro ao adicionar número de telefone: " . $conn->error . "\n";
+            echo "Não há horários disponíveis para hoje.";
         }
+    } else {
+        echo "Só trabalhamos com marcação diária. Não trabalhamos finais de semana ou feriados.";
+    }
+}
+
+//-----------------------------------------------------------------------------------//
+// NAO E BURRICE A REPETICAO DE CODIGO PENSA COMIGO SE SEMPRE VAI RETORNA DO 0,      //
+// A MELHOR SOLUCAO E REFAZER OS TESTES DE DIA E HORA, O USUARIO PODE FICAR AUSENTE  //
+// E DEPOIS ESCOLHER SENDO ASSIM MENOS ERRO...                                       //
+//-----------------------------------------------------------------------------------//
+
+function agendarHorario($telefone,$msg,$conn) {
+
+    // $dataAtual = (new DateTime())->format('Y-m-d');  // A data atual no formato Y-m-d
+    // $horaAtual = (new DateTime())->format('H:i:s');  // A hora atual no formato H:i:s
+
+    // Simulação de data e hora
+    $dataAtual = '2024-12-02'; // Segunda-feira
+    $horaAtual = '06:00:00';  // Horário fixo para teste
+
+    $result = buscaHorarios($dataAtual,$horaAtual,$conn);
+
+    if ($result->num_rows > 0) {
+
+        while ($row = $result->fetch_assoc()) {  
+            if ($opcao > $msg) break;//garante apenas ate o numero da msg
+        }
+
+    } else {
+        echo "Não há horários disponíveis para hoje.";
     }
 
-    $status = busca("status",$telefone,$conn);
+    if (validarDataUtil($dataAtual, $conn)) {
 
-    if($status == 0){
+        $result = buscaHorarios($dataAtual,$horaAtual,$conn);
 
-        echo("Ola, tudo bem ? sou um bot...
-        Como posso ajudar ?
-        1-Consulta
-        2-Treinamento
-        3-Direito de Trabalho
-        4-Assessoria Juridica
-        5-Registro de Marcas");
-
-        atualizar_stes("status",1,$telefone,$conn);
-
-    }else{
-
-        $escolha = busca("escolha",$telefone,$conn);
-
-        if ($escolha == 0){
-            if ($msg >= 1 && $msg <= 5) {
-                switch ($msg) {
-                    case 1:
-                        mostrarHorario($conn);
-                        atualizar_stes("escolha2",1,$telefone,$conn);
-                        atualizar_stes("escolha",1,$telefone,$conn);
-                        break;
-                    case 2:
-                        echo("treinamneto");
-                        $escolha = 2;
-                        break;
-                    case 3:
-                        echo("direitos do trabalho");
-                        $escolha = 3;
-                        break;
-                    case 4:
-                        echo("Assessoria Juridica");
-                        $escolha = 4;
-                        break;
-                    case 5:
-                        echo("Registro de Marcas");
-                        $escolha = 5;
-                        break;
-                }
-            }
-            else {
-            }
-
-        }
-        else{
-
-            $escolha2 = busca("escolha2",$telefone,$conn);
-
-            if ($escolha2 == 1){
-                $escolha3 = busca("escolha3",$telefone,$conn);
-
-                if ($escolha3 == 0){
-                    if ($msg >= 1 && $msg <= 6) {
-                        switch ($msg) {
-                            case 1:
-                                // reduzir codigo, fazer uma funcao pra zerar, com um for talvez,ou secao com uma update
-                                //echo("horario marcado");
-                                autalizaHora(1,$telefone,$conn);
-                                atualizar_stes("segurid",1,$telefone,$conn);
-                                atualizar_stes("escolha3",1,$telefone,$conn);
-                                echo("Qual e seu nome ?");
-                                // add valor 0 zera o historico de mensagens do cliente
-                                break;
-                            case 2:
-                                //echo("horario marcado");
-                                autalizaHora(2,$telefone,$conn);
-                                atualizar_stes("segurid",2,$telefone,$conn);
-                                atualizar_stes("escolha3",1,$telefone,$conn);
-                                echo("Qual e seu nome ?");
-                                // add valor 0 zera o historico de mensagens do cliente
-                                break;
-                            case 3:
-                                //echo("horario marcado");
-                                autalizaHora(3,$telefone,$conn);
-                                atualizar_stes("segurid",3,$telefone,$conn);
-                                atualizar_stes("escolha3",1,$telefone,$conn);
-                                echo("Qual e seu nome ?");
-                                // add valor 0 zera o historico de mensagens do cliente
-                                break;
-                            case 4:
-                                //echo("horario marcado");
-                                autalizaHora(4,$telefone,$conn);
-                                atualizar_stes("segurid",4,$telefone,$conn);
-                                atualizar_stes("escolha3",1,$telefone,$conn);
-                                $id = 4;
-                                // add valor 0 zera o historico de mensagens do cliente
-                                break;
-                            case 5:
-                                //echo("horario marcado");
-                                autalizaHora(5,$telefone,$conn);
-                                atualizar_stes("segurid",5,$telefone,$conn);
-                                atualizar_stes("escolha3",1,$telefone,$conn);
-                                echo("Qual e seu nome ?");
-                                // add valor 0 zera o historico de mensagens do cliente
-                                break;
-                            case 6:
-                                //echo("horario marcado");
-                                autalizaHora(6,$telefone,$conn);
-                                atualizar_stes("segurid",6,$telefone,$conn);
-                                atualizar_stes("escolha3",1,$telefone,$conn);
-                                echo("Qual e seu nome ?");
-                                // add valor 0 zera o historico de mensagens doi cliente
-                                break;
-                        }
-                    }
-                }
-                else if ($escolha3 == 1){
-                    $id = busca("segurid",$telefone,$conn);
-                    addNome($msg,$telefone,$id,$conn);
-                    atualizar_stes("escolha3",1,$telefone,$conn);
-                    addValor(0,$telefone,$conn);
-                }
-            }
-
-        }
+    } else {
+        echo "Só trabalhamos com marcação diária. Não trabalhamos finais de semana ou feriados.";
     }
+}
+
+function criarQR() {
+    echo("QR CODE: ...");
+}
+
+if (!$conn) {
+
+    die("Erro na conexão do BD: " . mysqli_connect_error());
+
+} else {
+
+    if (isset($_GET['telefone']) && isset($_GET['msg'])) {
+        $telefone = $_GET['telefone'];
+        $msg      = $_GET['msg'];
+    } else {
+        echo "Valor null";
+    }
+
+    if (buscaUsuario("telefone", $telefone, $conn) == null) {
+        // Certifique-se de que $nome e $status têm valores válidos antes de inserir
+        $sql = "INSERT INTO usuario (telefone, nome, status) VALUES (?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssi", $telefone, $nome, $status); // 'ssi' indica dois strings e um inteiro
+        $stmt->execute(); // Execute a instrução preparada
+    }
+
+    $status = buscaUsuario("status",$telefone,$conn);
+    $nome = buscaUsuario("nome",$telefone,$conn);
+
+    if ($status == 0) {
+        primeiraMSG($nome);
+        atualizar("status",2,$telefone,$conn);
+    } elseif ($status == 2) {
+        if (in_array($msg, $opcoes)) {//if para somente aceiar msg validas no array predefinido
+            atualizar("msg",$msg,$telefone,$conn);
+            if ($nome == null || $msg == "*") {//Primeiro uso ou mudanca de nome no bot
+                segundaMSG();//
+                atualizar("status",3,$telefone,$conn);
+            } else{// usuario ja recorrente
+                horariosDisponiveis($conn);
+                atualizar("status",4,$telefone,$conn);
+            }
+        }else{
+            echo("Digite uma opçao valida...");
+        }
+    } elseif ($status == 3) {
+        $umsg = buscaUsuario("msg",$telefone,$conn);
+        if($nome == null || buscaUsuario("msg",$telefone,$conn) == "*"){
+            atualizar("nome",$msg,$telefone,$conn);
+
+            if($umsg == "*"){
+                atualizar("status",0,$telefone,$conn);
+                echo("A mudanca foi feia com sucesso $msg.
+                Mande um OK");
+            }else{
+                horariosDisponiveis($conn);
+                atualizar("status",4,$telefone,$conn);
+            }
+        }
+    } elseif ($status == 4) {// enviar cod pix
+
+        if(in_array($msg, $opcoesHorarios)){
+
+            agendarHorario($msg,$conn);
+
+        }else{
+            echo("Digite uma opçao valida...");
+        }
+
+        agendarHorario($msg,$conn);
+
+        criarQR();
+
+        //pegar msg e criar uma marcacao
+
+        //gerar e enviar pix copiar e colar
+
+        atualizar("status",0,$telefone,$conn);//zera a sessao do usuario
+    }
+
 }
 
 $conn->close();
