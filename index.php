@@ -162,23 +162,34 @@ function agendarHorario($telefone,$msg,$conn) {
 
     if(validacaoDiaeHora($result, $dataAtual, $conn)){//REDUCAO DE CODIGO
 
+        //consultar
+
         if (isset($horarios[$msg])) {
 
-                        $idHorario = $horarios[$msg];
+            $horarios = [];
+            $opcao = 1;
 
-            // Marca o horário no banco de dados
+            while ($row = $result->fetch_assoc()) {
+                $horarios[$opcao] = $row['id']; // Mapeia a opçao ao ID do horario
+                $opcao++;
+    
+                if ($opcao > 6) break;
+            }
+
+            $idHorario = $horarios[$msg];
+
+            // Marca o horario no banco de dados
             $sql = "INSERT INTO marcacoes (id_usuario, id_horario) VALUES (
-                (SELECT id FROM usuario WHERE telefone = ?), ?)";
+            (SELECT id FROM usuario WHERE telefone = ?), ?)";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("si", $telefone, $idHorario);
             if ($stmt->execute()) {
-                echo "Horário agendado com sucesso!";
+                echo "Horário pre agendado com sucesso!";
+                return TRUE;
             } else {
                 echo "Erro ao agendar o horário. Tente novamente.";
+                return FALSE;
             }
-
-            return TRUE;
-
         }else{
             echo "Opção inválida. Escolha um horário válido.";
             return FALSE;
@@ -189,7 +200,19 @@ function agendarHorario($telefone,$msg,$conn) {
 }
 
 function criarQR() {
-    echo("QR CODE: ...");
+
+    $chavePix = "suachave@pix.com";
+    $valor = "50.00";
+
+    $emvCode = "00020126360014BR.GOV.BCB.PIX0114" . $chavePix . "520400005303986";
+    
+    // Adiciona o valor, se fornecido
+    if (!empty($valor)) {
+        $emvCode .= "5406" . str_pad($valor, 6, '0', STR_PAD_LEFT); // Garante que o valor tenha 6 digitos
+    }
+
+    // Remove espacos em branco extras (se houver)
+    return preg_replace('/\s+/', '', $emvCode);
 }
 
 if (!$conn) {
@@ -252,7 +275,10 @@ if (!$conn) {
 
             if(agendarHorario($msg,$conn)){
 
-                criarQR();
+                echo("Obrigado por marcar um horario.");
+                echo("Codigo pix gerado : ". criarQR());
+                echo("Assim que for pago enviaremos uma mensagem confirmando o pagamento");
+                echo("Se nao for pago em ate 15 minutos o horarios estara disponivel para outra pessoa...");
     
                 //pegar msg e criar uma marcacao
         
