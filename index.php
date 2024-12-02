@@ -108,71 +108,84 @@ function buscaHorarios($dataAtual,$horaAtual,$conn) {// retorna apenas horarios 
 
 }
 
-function horariosDisponiveis($conn) {
-
-    // $dataAtual = (new DateTime())->format('Y-m-d');  // A data atual no formato Y-m-d
-    // $horaAtual = (new DateTime())->format('H:i:s');  // A hora atual no formato H:i:s
-
-    // Simulação de data e hora
-    $dataAtual = '2024-12-02'; // Segunda-feira
-    $horaAtual = '06:00:00';  // Horário fixo para teste
+function validacaoDiaeHora($result, $dataAtual, $conn){
 
     if (validarDataUtil($dataAtual, $conn)) {
-
-        $result = buscaHorarios($dataAtual,$horaAtual,$conn);
-    
         if ($result->num_rows > 0) {
-            echo "A consulta esta no valor de 50R$.
-            Escolha uma das opções abaixo:\n";
-            $opcao = 1; // inicia o contador
-            while ($row = $result->fetch_assoc()) {
-                echo "$opcao - " . $row['hora'] . "\n";
-                $opcao++;
-                
-                if ($opcao > 6) break;//garante apenas 6 opcoes
-            }
+            return TRUE;
         } else {
             echo "Não há horários disponíveis para hoje.";
+            return FALSE;
         }
+
     } else {
         echo "Só trabalhamos com marcação diária. Não trabalhamos finais de semana ou feriados.";
+        return FALSE;
     }
+
 }
 
-//-----------------------------------------------------------------------------------//
-// NAO E BURRICE A REPETICAO DE CODIGO PENSA COMIGO SE SEMPRE VAI RETORNA DO 0,      //
-// A MELHOR SOLUCAO E REFAZER OS TESTES DE DIA E HORA, O USUARIO PODE FICAR AUSENTE  //
-// E DEPOIS ESCOLHER SENDO ASSIM MENOS ERRO...                                       //
-//-----------------------------------------------------------------------------------//
+function horariosDisponiveis($conn) {
 
-function agendarHorario($telefone,$msg,$conn) {
-
-    // $dataAtual = (new DateTime())->format('Y-m-d');  // A data atual no formato Y-m-d
-    // $horaAtual = (new DateTime())->format('H:i:s');  // A hora atual no formato H:i:s
+    $dataAtual = (new DateTime())->format('Y-m-d');  // A data atual no formato Y-m-d
+    $horaAtual = (new DateTime())->format('H:i:s');  // A hora atual no formato H:i:s
 
     // Simulação de data e hora
-    $dataAtual = '2024-12-02'; // Segunda-feira
-    $horaAtual = '06:00:00';  // Horário fixo para teste
+    //$dataAtual = '2024-12-02'; // Segunda-feira
+    //$horaAtual = '06:00:00';  // Horário fixo para teste
 
     $result = buscaHorarios($dataAtual,$horaAtual,$conn);
 
-    if ($result->num_rows > 0) {
+    if(validacaoDiaeHora($result, $dataAtual, $conn)){//REDUCAO DE CODIGO
+        echo "A consulta esta no valor de 50R$.
+        Escolha uma das opções abaixo:\n";
+        $opcao = 1; // inicia o contador
+        while ($row = $result->fetch_assoc()) {
+            echo "$opcao - " . $row['hora'] . "\n";
+            $opcao++;
+                    
+            if ($opcao > 6) break;//garante apenas 6 opcoes
+        }
+    }
+}
 
-        while ($row = $result->fetch_assoc()) {  
-            if ($opcao > $msg) break;//garante apenas ate o numero da msg
+function agendarHorario($telefone,$msg,$conn) {
+
+    $dataAtual = (new DateTime())->format('Y-m-d');  // A data atual no formato Y-m-d
+    $horaAtual = (new DateTime())->format('H:i:s');  // A hora atual no formato H:i:s
+
+    // Simulação de data e hora
+    // $dataAtual = '2024-12-02'; // Segunda-feira
+    // $horaAtual = '06:00:00';  // Horário fixo para teste
+
+    $result = buscaHorarios($dataAtual, $horaAtual, $conn);
+
+    if(validacaoDiaeHora($result, $dataAtual, $conn)){//REDUCAO DE CODIGO
+
+        if (isset($horarios[$msg])) {
+
+                        $idHorario = $horarios[$msg];
+
+            // Marca o horário no banco de dados
+            $sql = "INSERT INTO marcacoes (id_usuario, id_horario) VALUES (
+                (SELECT id FROM usuario WHERE telefone = ?), ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("si", $telefone, $idHorario);
+            if ($stmt->execute()) {
+                echo "Horário agendado com sucesso!";
+            } else {
+                echo "Erro ao agendar o horário. Tente novamente.";
+            }
+
+            return TRUE;
+
+        }else{
+            echo "Opção inválida. Escolha um horário válido.";
+            return FALSE;
         }
 
-    } else {
-        echo "Não há horários disponíveis para hoje.";
     }
 
-    if (validarDataUtil($dataAtual, $conn)) {
-
-        $result = buscaHorarios($dataAtual,$horaAtual,$conn);
-
-    } else {
-        echo "Só trabalhamos com marcação diária. Não trabalhamos finais de semana ou feriados.";
-    }
 }
 
 function criarQR() {
@@ -237,21 +250,21 @@ if (!$conn) {
 
         if(in_array($msg, $opcoesHorarios)){
 
-            agendarHorario($msg,$conn);
+            if(agendarHorario($msg,$conn)){
+
+                criarQR();
+    
+                //pegar msg e criar uma marcacao
+        
+                //gerar e enviar pix copiar e colar
+        
+                atualizar("status",0,$telefone,$conn);//zera a sessao do usuario
+
+            }
 
         }else{
             echo("Digite uma opçao valida...");
         }
-
-        agendarHorario($msg,$conn);
-
-        criarQR();
-
-        //pegar msg e criar uma marcacao
-
-        //gerar e enviar pix copiar e colar
-
-        atualizar("status",0,$telefone,$conn);//zera a sessao do usuario
     }
 
 }
